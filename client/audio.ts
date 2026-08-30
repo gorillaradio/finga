@@ -25,6 +25,13 @@ export class AudioEngine {
 
   unlock(): void {
     if (!this.ctx) {
+      // iOS usa la sessione "ambient" di default: muta il Web Audio quando
+      // l'interruttore silenzioso è attivo. "playback" lo fa suonare comunque.
+      if ("audioSession" in navigator) {
+        try {
+          (navigator as { audioSession: { type: string } }).audioSession.type = "playback";
+        } catch {}
+      }
       this.ctx = new AudioContext();
       this.master = this.ctx.createGain();
       this.master.connect(this.ctx.destination);

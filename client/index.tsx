@@ -90,6 +90,18 @@ export function App() {
           ))}
         </div>
         <p class="text-center text-sm text-zinc-400">1 = difficile · 5 = comodo</p>
+        <button
+          class="text-sm text-zinc-400 disabled:opacity-50"
+          disabled={saving}
+          onClick={() => {
+            setPendingRun(null);
+            setSaveError(false);
+            setPattern(randomPattern(pattern));
+            setScreen("setup");
+          }}
+        >
+          Scarta esecuzione
+        </button>
         {saveError && pendingRun && (
           <div class="rounded-lg bg-rose-900/50 p-4 text-center">
             <p>Salvataggio non riuscito. L'esecuzione non è persa.</p>

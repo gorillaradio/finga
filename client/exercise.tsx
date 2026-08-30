@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { parsePattern } from "../shared/patterns";
 import { positionOf, resumeIndexFor, type SequenceEvent } from "../shared/sequencer";
 import { AudioEngine } from "./audio";
 import { Fretboard } from "./fretboard";
@@ -43,10 +44,12 @@ export function Exercise(props: {
     if (phase === "finished") props.onDone();
   }, [phase]);
 
+  const patternFingers = useMemo(() => parsePattern(props.pattern), [props.pattern]);
+
   const current = index >= 0 && index < events.length ? events[index] : null;
-  const position = current
-    ? positionOf(current)
-    : positionOf(events[Math.min(pausedIndex.current, events.length - 1)]);
+  // evento di ripresa: dà posizione e corda da mostrare durante count-in e pausa
+  const resumeEvent = events[Math.min(pausedIndex.current, events.length - 1)];
+  const position = current ? positionOf(current) : positionOf(resumeEvent);
 
   const pause = () => {
     // durante il count-in index è -1: non sovrascrivere il punto di ripresa
@@ -77,7 +80,12 @@ export function Exercise(props: {
       )}
       {phase === "paused" && <p class="text-center text-amber-400">In pausa</p>}
 
-      <Fretboard current={phase === "playing" ? current : null} position={position} />
+      <Fretboard
+        current={phase === "playing" ? current : null}
+        position={position}
+        pattern={patternFingers}
+        previewString={resumeEvent.string}
+      />
 
       <div class="mt-auto grid grid-cols-2 gap-3">
         {phase === "paused" ? (
