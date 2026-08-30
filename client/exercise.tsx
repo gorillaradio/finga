@@ -49,7 +49,8 @@ export function Exercise(props: {
     : positionOf(events[Math.min(pausedIndex.current, events.length - 1)]);
 
   const pause = () => {
-    pausedIndex.current = Math.min(Math.max(index, 0), events.length - 1);
+    // durante il count-in index è -1: non sovrascrivere il punto di ripresa
+    if (index >= 0) pausedIndex.current = Math.min(index, events.length - 1);
     engine.stop();
     setPhase("paused");
   };
