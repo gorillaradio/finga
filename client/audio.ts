@@ -70,14 +70,6 @@ export class AudioEngine {
       if (s.time <= t) index = s.index;
       else break;
     }
-    if (
-      index === -1 &&
-      this.scheduled.length === 0 &&
-      this.opts === null &&
-      this.startTime > 0
-    ) {
-      return -1;
-    }
     return index;
   }
 
