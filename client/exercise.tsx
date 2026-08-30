@@ -6,6 +6,19 @@ import { Fretboard } from "./fretboard";
 
 type Phase = "countIn" | "playing" | "paused" | "finished";
 
+function useIsPortrait() {
+  const [portrait, setPortrait] = useState(
+    window.matchMedia("(orientation: portrait)").matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(orientation: portrait)");
+    const onChange = (e: MediaQueryListEvent) => setPortrait(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return portrait;
+}
+
 export function Exercise(props: {
   engine: AudioEngine;
   events: SequenceEvent[];
@@ -16,6 +29,7 @@ export function Exercise(props: {
 }) {
   const { engine, events, bpm, notesPerBeat } = props;
   const [phase, setPhase] = useState<Phase>("countIn");
+  const portrait = useIsPortrait();
   const [index, setIndex] = useState(-1);
   const pausedIndex = useRef(0);
 
@@ -83,12 +97,15 @@ export function Exercise(props: {
       )}
       {phase === "paused" && <p class="text-center text-amber-400">In pausa</p>}
 
-      <Fretboard
-        current={phase === "playing" ? current : null}
-        position={position}
-        pattern={patternFingers}
-        previewString={resumeEvent.string}
-      />
+      <div class={portrait ? "relative min-h-0 flex-1" : ""}>
+        <Fretboard
+          current={phase === "playing" ? current : null}
+          position={position}
+          pattern={patternFingers}
+          previewString={resumeEvent.string}
+          vertical={portrait}
+        />
+      </div>
 
       <div class="mt-auto grid grid-cols-2 gap-3">
         {phase === "paused" ? (
