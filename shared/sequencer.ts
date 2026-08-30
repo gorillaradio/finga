@@ -37,9 +37,13 @@ export function positionOf(e: SequenceEvent): number {
 
 // Primo evento del blocco di posizione che contiene `index`.
 // I blocchi sono contigui e blocchi adiacenti hanno posizioni diverse.
+// Loop `for` limitato: il compilatore del deploy anonimo Lakebed vieta `while`.
 export function resumeIndexFor(events: SequenceEvent[], index: number): number {
   const pos = positionOf(events[index]);
-  let i = index;
-  while (i > 0 && positionOf(events[i - 1]) === pos) i--;
-  return i;
+  let start = index;
+  for (let i = index; i > 0; i--) {
+    if (positionOf(events[i - 1]) !== pos) break;
+    start = i - 1;
+  }
+  return start;
 }

@@ -14,7 +14,7 @@ export type DbRun = {
   bpm: string;
   notesPerBeat: string;
   feedback: string;
-  createdAt: string;
+  createdAt: string; // il server ignora il valore del client e scrive il proprio (metadata Lakebed)
 };
 
 export function serializeRun(run: Run): DbRun {
