@@ -47,8 +47,11 @@ export function Exercise(props: {
   const patternFingers = useMemo(() => parsePattern(props.pattern), [props.pattern]);
 
   const current = index >= 0 && index < events.length ? events[index] : null;
-  // evento di ripresa: dà posizione e corda da mostrare durante count-in e pausa
-  const resumeEvent = events[Math.min(pausedIndex.current, events.length - 1)];
+  // evento di ripresa: dà posizione e corda da mostrare durante count-in e pausa.
+  // Deve essere lo stesso indice da cui riparte resume(), non il punto di pausa:
+  // la ripresa torna all'inizio del blocco di posizione (sempre corda 6).
+  const resumeEvent =
+    events[resumeIndexFor(events, Math.min(pausedIndex.current, events.length - 1))];
   const position = current ? positionOf(current) : positionOf(resumeEvent);
 
   const pause = () => {
