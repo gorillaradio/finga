@@ -19,6 +19,32 @@ function useIsPortrait() {
   return portrait;
 }
 
+// Tiene lo schermo acceso finché l'esercizio è montato. Il browser rilascia il
+// lock quando la pagina va in background: lo richiediamo al ritorno.
+function useWakeLock() {
+  useEffect(() => {
+    if (!("wakeLock" in navigator)) return;
+    let sentinel: WakeLockSentinel | null = null;
+    let active = true;
+    const request = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const s = await navigator.wakeLock.request("screen");
+        if (active) sentinel = s;
+        else void s.release(); // smontato mentre la richiesta era in corso
+      } catch {}
+    };
+    const onVisibility = () => void request();
+    void request();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      active = false;
+      document.removeEventListener("visibilitychange", onVisibility);
+      void sentinel?.release();
+    };
+  }, []);
+}
+
 export function Exercise(props: {
   engine: AudioEngine;
   events: SequenceEvent[];
@@ -30,6 +56,7 @@ export function Exercise(props: {
   const { engine, events, bpm, notesPerBeat } = props;
   const [phase, setPhase] = useState<Phase>("countIn");
   const portrait = useIsPortrait();
+  useWakeLock();
   const [index, setIndex] = useState(-1);
   const pausedIndex = useRef(0);
 
