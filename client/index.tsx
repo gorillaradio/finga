@@ -1,4 +1,4 @@
-import { createClient } from "lakebed/client";
+import { createClient, SignInWithGoogle, signOut, useAuth } from "lakebed/client";
 import { useMemo, useState } from "preact/hooks";
 import type app from "../server/index";
 import { parsePattern, randomPattern, type PatternLength } from "../shared/patterns";
@@ -28,6 +28,7 @@ export function App() {
   const [saveError, setSaveError] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const auth = useAuth();
   const saveRun = client.useMutation("saveRun");
   const dbRuns = client.useQuery("myRuns");
 
@@ -161,9 +162,16 @@ export function App() {
     <main class="flex min-h-screen flex-col gap-6 bg-zinc-950 p-6 text-zinc-100">
       <header class="flex items-baseline justify-between">
         <h1 class="text-2xl font-bold">Finga</h1>
-        <button class="text-sm text-zinc-400" onClick={() => setScreen("history")}>
-          Storico
-        </button>
+        <div class="flex items-baseline gap-4 text-sm text-zinc-400">
+          {!auth.isLoading && (auth.isSignedIn ? (
+            <button onClick={() => void signOut()}>Esci</button>
+          ) : (
+            <SignInWithGoogle requestPii={false} className="text-sm text-zinc-400">
+              Accedi con Google
+            </SignInWithGoogle>
+          ))}
+          <button onClick={() => setScreen("history")}>Storico</button>
+        </div>
       </header>
 
       <section class="rounded-xl bg-zinc-900 p-4">

@@ -1,4 +1,4 @@
-import { capsule, mutation, query, string, table } from "lakebed/server";
+import { capsule, mutation, query, string, table, userId } from "lakebed/server";
 import type { DbRun } from "../shared/runs";
 
 export default capsule({
@@ -12,7 +12,8 @@ export default capsule({
       bpm: string(),
       notesPerBeat: string(),
       feedback: string(),
-      userId: string(),
+      // userId(): Lakebed sposta le righe sull'account quando un ospite fa login
+      userId: userId(),
     }).index("by_user", ["userId"]),
   },
 
