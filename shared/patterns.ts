@@ -35,21 +35,31 @@ export function patternFingerProfile(p: Finger[]): Record<Finger, number> {
   return { 1: raw[1] / sum, 2: raw[2] / sum, 3: raw[3] / sum, 4: raw[4] / sum };
 }
 
-function permutations(items: Finger[]): Finger[][] {
-  if (items.length <= 1) return [items];
-  return items.flatMap((item, i) =>
-    permutations([...items.slice(0, i), ...items.slice(i + 1)]).map((rest) => [item, ...rest])
+export type PatternLength = 4 | 6;
+
+const FINGERS: Finger[] = [1, 2, 3, 4];
+
+// Tutte le sequenze lunghe `length` senza lo stesso dito due volte di fila.
+function sequences(length: number): Finger[][] {
+  if (length === 1) return FINGERS.map((f) => [f]);
+  return sequences(length - 1).flatMap((seq) =>
+    FINGERS.filter((f) => f !== seq[seq.length - 1]).map((f) => [...seq, f])
   );
 }
 
-const LONG_PATTERNS = ["1-2-1-3-1-4", "3-2-4-2-1-2"];
+const cache = new Map<number, string[]>();
 
-export const PATTERN_CATALOG: string[] = [
-  ...permutations([1, 2, 3, 4]).map((p) => formatPattern(p)),
-  ...LONG_PATTERNS,
-];
+// Pattern validi: tutte e quattro le dita, mai lo stesso dito due volte di fila.
+export function patternsOfLength(length: PatternLength): string[] {
+  let all = cache.get(length);
+  if (!all) {
+    all = sequences(length).filter((s) => new Set(s).size === 4).map(formatPattern);
+    cache.set(length, all);
+  }
+  return all;
+}
 
-export function randomPattern(exclude?: string): string {
-  const pool = PATTERN_CATALOG.filter((p) => p !== exclude);
+export function randomPattern(length: PatternLength, exclude?: string): string {
+  const pool = patternsOfLength(length).filter((p) => p !== exclude);
   return pool[Math.floor(Math.random() * pool.length)];
 }

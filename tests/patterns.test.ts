@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  PATTERN_CATALOG,
   fingerFrequency,
   formatPattern,
   parsePattern,
   patternFingerProfile,
+  patternsOfLength,
   randomPattern,
   startingFinger,
 } from "../shared/patterns";
@@ -50,20 +50,39 @@ describe("caratteristiche", () => {
   });
 });
 
-describe("catalogo", () => {
-  it("contains all 24 permutations plus curated long patterns", () => {
-    expect(PATTERN_CATALOG.length).toBeGreaterThanOrEqual(26);
-    const perms = PATTERN_CATALOG.filter((p) => p.length === 7); // "1-2-3-4"
-    expect(new Set(perms).size).toBe(24);
+describe("generazione", () => {
+  it("4 note: esattamente le 24 permutazioni", () => {
+    const all = patternsOfLength(4);
+    expect(all.length).toBe(24);
+    expect(new Set(all).size).toBe(24);
+    for (const p of all) expect([...parsePattern(p)].sort()).toEqual([1, 2, 3, 4]);
   });
 
-  it("every entry parses", () => {
-    for (const p of PATTERN_CATALOG) expect(() => parsePattern(p)).not.toThrow();
+  it("6 note: 600 pattern, inclusi quelli scritti a mano in passato", () => {
+    const all = patternsOfLength(6);
+    expect(all.length).toBe(600);
+    expect(new Set(all).size).toBe(600);
+    expect(all).toContain("1-2-1-3-1-4");
+    expect(all).toContain("3-2-4-2-1-2");
   });
 
-  it("randomPattern avoids the excluded pattern", () => {
+  it("ogni pattern usa tutte le dita e non ripete un dito di fila", () => {
+    for (const length of [4, 6] as const) {
+      for (const p of patternsOfLength(length)) {
+        const f = parsePattern(p);
+        expect(f.length).toBe(length);
+        expect(new Set(f).size).toBe(4);
+        for (let i = 1; i < f.length; i++) expect(f[i]).not.toBe(f[i - 1]);
+      }
+    }
+  });
+
+  it("randomPattern rispetta la lunghezza ed evita il pattern escluso", () => {
     for (let i = 0; i < 50; i++) {
-      expect(randomPattern("1-2-3-4")).not.toBe("1-2-3-4");
+      const p4 = randomPattern(4, "1-2-3-4");
+      expect(p4).not.toBe("1-2-3-4");
+      expect(parsePattern(p4).length).toBe(4);
+      expect(parsePattern(randomPattern(6)).length).toBe(6);
     }
   });
 });

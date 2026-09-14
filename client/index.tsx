@@ -1,7 +1,7 @@
 import { createClient } from "lakebed/client";
 import { useMemo, useState } from "preact/hooks";
 import type app from "../server/index";
-import { parsePattern, randomPattern } from "../shared/patterns";
+import { parsePattern, randomPattern, type PatternLength } from "../shared/patterns";
 import { computeUserProfile } from "../shared/profile";
 import { parseRun, serializeRun, type Run } from "../shared/runs";
 import { buildSequence } from "../shared/sequencer";
@@ -19,7 +19,8 @@ const FINGER_NAMES: Record<number, string> = {
 
 export function App() {
   const [screen, setScreen] = useState<Screen>("setup");
-  const [pattern, setPattern] = useState(() => randomPattern());
+  const [patternLength, setPatternLength] = useState<PatternLength>(4);
+  const [pattern, setPattern] = useState(() => randomPattern(4));
   const [bpm, setBpm] = useState(60);
   const [notesPerBeat, setNotesPerBeat] = useState<1 | 2>(1);
   const [maxPosition, setMaxPosition] = useState(12);
@@ -43,7 +44,7 @@ export function App() {
     try {
       await saveRun(serializeRun(run));
       setPendingRun(null);
-      setPattern(randomPattern(run.pattern));
+      setPattern(randomPattern(patternLength, run.pattern));
       setScreen("setup");
     } catch {
       setSaveError(true);
@@ -96,7 +97,7 @@ export function App() {
           onClick={() => {
             setPendingRun(null);
             setSaveError(false);
-            setPattern(randomPattern(pattern));
+            setPattern(randomPattern(patternLength, pattern));
             setScreen("setup");
           }}
         >
@@ -171,7 +172,7 @@ export function App() {
           <span class="font-mono text-3xl">{pattern}</span>
           <button
             class="rounded bg-zinc-700 px-3 py-2 text-sm"
-            onClick={() => setPattern(randomPattern(pattern))}
+            onClick={() => setPattern(randomPattern(patternLength, pattern))}
           >
             Un altro
           </button>
@@ -179,6 +180,25 @@ export function App() {
       </section>
 
       <section class="flex flex-col gap-4">
+        <label class="flex items-center justify-between">
+          <span>Note del pattern</span>
+          <div class="flex gap-2">
+            {([4, 6] as const).map((n) => (
+              <button
+                key={n}
+                class={`rounded px-4 py-2 ${patternLength === n ? "bg-emerald-600" : "bg-zinc-700"}`}
+                onClick={() => {
+                  if (n === patternLength) return;
+                  setPatternLength(n);
+                  setPattern(randomPattern(n));
+                }}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </label>
+
         <label class="flex items-center justify-between">
           <span>BPM</span>
           <div class="flex items-center gap-2">
